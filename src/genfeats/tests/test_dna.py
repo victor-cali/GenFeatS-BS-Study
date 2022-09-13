@@ -27,9 +27,12 @@ class TestDNAModel:
         source = dict_gene['source']
         func_args = dict_gene['func_args']
         gene = Gene(func, freq, source, func_args)
+        hash(gene)
         
     def test_gene_build_by_dict(self, dict_gene):
         gene = Gene(**dict_gene)
+        hash(gene)
         
     def test_gene_build_by_json(self, json_gene):
         gene = Gene(json_gene)
+        hash(gene)
