@@ -30,9 +30,9 @@ class TestDNAModel:
         hash(gene)
         
     def test_gene_build_by_dict(self, dict_gene):
-        gene = Gene(**dict_gene)
+        gene = Gene.from_dict(dict_gene)
         hash(gene)
         
     def test_gene_build_by_json(self, json_gene):
-        gene = Gene(json_gene)
+        gene = Gene.from_json(json_gene)
         hash(gene)
