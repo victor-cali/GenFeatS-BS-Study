@@ -87,3 +87,5 @@ target/
 
 # Mypy cache
 .mypy_cache/
+resources/
+notebooks/Untitled-1.ipynb
