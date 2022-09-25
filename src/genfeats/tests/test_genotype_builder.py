@@ -30,4 +30,5 @@ class TestGenotypeBuilder:
         size = 10
         population = genobuilder.make_population(size)
         assert len(population) == size
-        assert all(isinstance(population, Chromesome))
+        for chromesome in population:
+            assert isinstance(chromesome, Chromesome)
