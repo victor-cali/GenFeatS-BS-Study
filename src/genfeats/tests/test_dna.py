@@ -8,10 +8,10 @@ class TestGene:
     @pytest.fixture
     def dict_gene(self) -> dict:
         gene = {
-            'func': 'dummy_func',
-            'freq': [[4, 7.5], [12, 20]],
-            'source': ['C3', 'C4'],
-            'func_args': {
+            'feature': 'dummy_func',
+            'freq_bands': [[4, 7.5], [12, 20]],
+            'channels': ['C3', 'C4'],
+            'feature_parameters': {
                 'dummy_arg1': 1,
                 'dummy_arg2': 2
             } 

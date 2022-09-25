@@ -5,20 +5,20 @@ import json
 @dataclass(frozen=True, order=True)
 class Gene:
     
-    func: str
-    freq: tuple 
-    source: tuple
-    func_args: tuple
+    feature: str
+    freq_bands: tuple 
+    channels: tuple
+    feature_parameters: tuple
     
     def __post_init__(self) -> None:
-        super().__setattr__('func', str(self.func))
-        super().__setattr__('freq', tuple(sorted(tuple(band) for band in self.freq)))
-        super().__setattr__('source', tuple(sorted(self.source)))
-        func_args = self.func_args.copy()
-        for key, value in func_args.items():
+        super().__setattr__('feature', str(self.feature))
+        super().__setattr__('freq_bands', tuple(sorted(tuple(band) for band in self.freq_bands)))
+        super().__setattr__('channels', tuple(sorted(self.channels)))
+        feature_parameters = self.feature_parameters.copy()
+        for parameter, value in feature_parameters.items():
             if isinstance(value, list):
-                func_args.update({key: tuple(value)})
-        super().__setattr__('func_args', tuple(sorted(func_args.items())))
+                feature_parameters.update({parameter: tuple(value)})
+        super().__setattr__('feature_parameters', tuple(sorted(feature_parameters.items())))
         
     def  __str__(self) -> str:
         return self.to_json()
@@ -34,10 +34,10 @@ class Gene:
 
     def to_dict(self) -> dict:
         gene = {
-            'func': self.func,
-            'freq': self.freq,
-            'source': self.source,
-            'func_args': dict(self.func_args)
+            'feature': self.feature,
+            'freq_bands': self.freq_bands,
+            'channels': self.channels,
+            'feature_parameters': dict(self.feature_parameters)
         }
         return gene
 
