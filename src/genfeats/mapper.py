@@ -19,7 +19,9 @@ class Mapper:
     def to_phenotype(self, dna: Union[Gene, Chromesome]) -> np.ndarray:
         if isinstance(dna, Gene):
             gene = self.__prepare_mapping(dna)
-            reference = map.remote(f=self.features[gene['feature']], kwargs=gene['feature_parameters'])
+            feature = self.features[gene['feature']]
+            feature_parameters = gene['feature_parameters']
+            reference = map.remote(f=feature, kwargs=feature_parameters)
             phenotype = ray.get(reference)
         elif isinstance(dna, Chromesome):
             chromesome_size = len(dna)
@@ -27,8 +29,9 @@ class Mapper:
             references = []
             for i in range(chromesome_size):
                 gene = self.__prepare_mapping(dna[i])
-                reference = map.remote(f=self.features[gene['feature']], kwargs=gene['feature_parameters'])
-                references.append(reference)
+                feature = self.features[gene['feature']]
+                feature_parameters = gene['feature_parameters']
+                references.append(map.remote(f=feature, kwargs=feature_parameters))
             for i in range(chromesome_size):
                 phenotype[:, i] = ray.get(references[i])
         else:
