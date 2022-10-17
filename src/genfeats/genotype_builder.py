@@ -33,6 +33,10 @@ class GenotypeBuilder:
         
         index = self.rng.choice(self.num_of_freq_bands, freq_bands_config, replace=False)
         freq_bands = [self.nucleobases['frequency_bands'][i] for i in index]
+        if len(freq_bands) == 2:
+            while max(0, min(freq_bands[0][1], freq_bands[1][1]) - max(freq_bands[0][0], freq_bands[1][0])) != 0:
+                index = self.rng.choice(self.num_of_freq_bands, freq_bands_config, replace=False)
+                freq_bands = [self.nucleobases['frequency_bands'][i] for i in index]
         
         index = self.rng.choice(self.num_of_features)
         feature = list(self.nucleobases['features'].keys())[index]
