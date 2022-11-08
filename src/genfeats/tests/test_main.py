@@ -6,7 +6,7 @@ from src.genfeats.dna.chromesome import Chromesome
 from src.sighandling.sighandling import get_dataset_bbcic4_2b
 
 
-class TestMapper:
+class TestMain:
     
     @pytest.fixture
     def epochs(self):
@@ -29,9 +29,9 @@ class TestMapper:
     
     @pytest.fixture
     def genes(self) -> tuple[Gene]:
-        g1 = Gene('kurtosis', ['Cz', 'C3'], [[4,12]], {})
-        g2 = Gene('variance', ['Cz'], [[4,12]], {})
-        g3 = Gene('skewness', ['Cz'], [[4,12]], {})
+        g1 = Gene('kurtosis', [[4,12]], ['Cz', 'C3'], {})
+        g2 = Gene('variance', [[4,12]], ['Cz'], {})
+        g3 = Gene('skewness', [[4,12]], ['Cz'], {})
         return g1, g2, g3
     
     @pytest.fixture

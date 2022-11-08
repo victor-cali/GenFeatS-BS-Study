@@ -19,62 +19,84 @@ class Mapper:
         self.features_handler = FeaturesHandler.remote(features_file)
         self.features_args = ray.get(self.features_handler.get_features_args.remote())
         
-    def to_phenotype(self, dna: Union[Gene, Chromesome]) -> np.ndarray:
+    def to_phenotype(self, dna: Union[Gene, Chromesome], return_dict: bool = False) -> np.ndarray:
         if isinstance(dna, Gene):
-            phenotype = self.__gene_to_phenotype(dna)
+            phenotype = self.__gene_to_phenotype(dna, return_dict=return_dict)
         elif isinstance(dna, Chromesome):
-            phenotype = self.__chromesome_to_phenotype(dna)
+            phenotype = self.__chromesome_to_phenotype(dna, return_dict=return_dict)
+        elif isinstance(dna, list) or isinstance(dna, tuple):
+            phenotype = self.__population_to_phenotype(dna)
         else:
             raise TypeError("Only Genes and Chromesomes can be maped to a Phenotype")
         return phenotype
 
-    def __gene_to_phenotype(self, gene: Gene) -> np.ndarray:
-        gene = self.__prepare_mapping(gene)
+    def __gene_to_phenotype(self, gene: Gene, return_dict: bool) -> np.ndarray:
+        gene_dto = self.__prepare_mapping(gene)
         reference = self.pool.starmap(
             self.features_handler.map.remote,
-            [(gene['data'], gene['feature'], gene['feature_parameters'])]
+            [(gene_dto['data'], gene_dto['feature'], gene_dto['feature_parameters'])]
         )
-        phenotype = ray.get(reference[0])
+        if return_dict:
+            phenotype = dict(gene = ray.get(reference[0]))
+        else:
+            phenotype = ray.get(reference[0])
         return phenotype
     
-    def __chromesome_to_phenotype(self, chromesome: Chromesome) -> np.ndarray:
-        mylist = []
+    def __chromesome_to_phenotype(self, chromesome: Chromesome, return_dict: bool) -> np.ndarray:
+        args_list = []
         n_genes = len(chromesome)
-        phenotype = np.empty((len(self.epochs), n_genes))
+        phenotype = dict() if return_dict else np.empty((len(self.epochs), n_genes))
         for i in range(n_genes):
-            gene = self.__prepare_mapping(chromesome[i])
-            mylist.append((gene['data'], gene['feature'], gene['feature_parameters']))
+            gene_dto = self.__prepare_mapping(chromesome[i])
+            args_list.append((gene_dto['data'], gene_dto['feature'], gene_dto['feature_parameters']))
         references = self.pool.starmap(
             self.features_handler.map.remote,
-            mylist
+            args_list
         )
         for i in range(n_genes):
-            phenotype[:, i] = ray.get(references[i])
+            if return_dict:
+                phenotype[chromesome[i]] = ray.get(references[i])
+            else:
+                phenotype[:, i] = ray.get(references[i])
         return phenotype
+    
+    def __population_to_phenotype(self, population: Union[list, tuple]) -> np.ndarray:
+        args_list = []
+        n_genes = len(population)
+        for i in range(n_genes):
+            gene_dto = self.__prepare_mapping(population[i])
+            args_list.append((gene_dto['data'], gene_dto['feature'], gene_dto['feature_parameters']))
+        references = self.pool.starmap(
+            self.features_handler.map.remote,
+            args_list
+        )
+        for i in range(n_genes):
+            phenotype = {population[i]: ray.get(references[i])}
+            yield phenotype
     
     def __prepare_mapping(self, gene: Gene) -> dict:
         gene = gene.to_dict()
-        if 'freq_band' in self.features_args[gene['feature']]:
-            gene['feature_parameters']['freq_band'] = gene['freq_bands']
+        if 'frequency_bands' in self.features_args[gene['feature']]:
+            gene['feature_parameters']['frequency_bands'] = gene['frequency_bands']
             data = gene['channels']
         else:
             channels = gene['channels']
-            freq_bands = gene['freq_bands']
-            data = [f'{ch}({fb[0]}-{fb[1]})' for ch in channels for fb in freq_bands]
+            frequency_bands = gene['frequency_bands']
+            data = [f'{ch}({fb[0]}-{fb[1]})' for ch in channels for fb in frequency_bands]
         if 'sfreq' in self.features_args[gene['feature']]:
             gene['feature_parameters']['sfreq'] = self.sfreq
         gene['data'] = self.epochs.get_data(picks=data)
         del gene['channels']
-        del gene['freq_bands']
+        del gene['frequency_bands']
         return gene
 
 @ray.remote
 class FeaturesHandler():
     def __init__(self, features_file: str) -> None:
-        module_name = 'gfsbs_features'
-        spec = importlib.util.spec_from_file_location('gfsbs_features', features_file)
+        module_name = 'nucleobases'
+        spec = importlib.util.spec_from_file_location('nucleobases', features_file)
         module = importlib.util.module_from_spec(spec)
-        sys.modules['gfsbs_features'] = module
+        sys.modules['nucleobases'] = module
         spec.loader.exec_module(module)
         self.features = dict(getmembers(module, isfunction))
         self.features_args = {key: getfullargspec(value)[0] for key, value in self.features.items()}

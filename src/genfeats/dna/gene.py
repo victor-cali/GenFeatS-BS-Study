@@ -6,14 +6,14 @@ import json
 class Gene:
     
     feature: str
-    freq_bands: tuple 
     channels: tuple
+    frequency_bands: tuple 
     feature_parameters: tuple
     
     def __post_init__(self) -> None:
         super().__setattr__('feature', str(self.feature))
-        super().__setattr__('freq_bands', tuple(sorted(tuple(band) for band in self.freq_bands)))
         super().__setattr__('channels', tuple(sorted(self.channels)))
+        super().__setattr__('frequency_bands', tuple(sorted(tuple(band) for band in self.frequency_bands)))
         feature_parameters = self.feature_parameters.copy()
         for parameter, value in feature_parameters.items():
             if isinstance(value, list):
@@ -35,8 +35,8 @@ class Gene:
     def to_dict(self) -> dict:
         gene = {
             'feature': self.feature,
-            'freq_bands': self.freq_bands,
             'channels': self.channels,
+            'frequency_bands': self.frequency_bands,
             'feature_parameters': dict(self.feature_parameters)
         }
         return gene

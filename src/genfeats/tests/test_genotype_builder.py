@@ -12,10 +12,14 @@ class TestGenotypeBuilder:
 
     @pytest.fixture
     def genobuilder(self, nucleobases) -> str:
-        return GenotypeBuilder(nucleobases, chromesome_len=3)
+        return GenotypeBuilder(nucleobases, chromesome_size=3)
+    
+    @pytest.fixture
+    def gene(self) -> tuple[Gene]:
+        return Gene('kurtosis', ['Cz', 'C3'], [[4,12]], {})
     
     def test_instance_GenotypeBuilder(self, nucleobases):
-        genobuilder = GenotypeBuilder(nucleobases, chromesome_len=3)
+        genobuilder = GenotypeBuilder(nucleobases, chromesome_size=3)
         assert isinstance(genobuilder, GenotypeBuilder)
 
     def test_make_gene(self, genobuilder):
@@ -32,3 +36,12 @@ class TestGenotypeBuilder:
         assert len(population) == size
         for chromesome in population:
             assert isinstance(chromesome, Chromesome)
+    
+    def test_mutate_gene(self, genobuilder, gene):
+        mutated_gene = genobuilder.mutate_gene(gene)
+        assert isinstance(mutated_gene, Gene)
+        assert gene.feature == mutated_gene.feature
+        assert gene.channels != mutated_gene.channels
+        assert gene.frequency_bands != mutated_gene.frequency_bands
+        assert gene.feature_parameters == mutated_gene.feature_parameters
+        
