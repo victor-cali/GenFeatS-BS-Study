@@ -106,6 +106,17 @@ class FeaturesHandler():
         phenotype = np.empty(n_epochs)
         for i in range(n_epochs):
             phenotype[i] = self.features[feature](data=data[i,:], **kwargs)
+            
+        if np.any(np.isnan(phenotype)) or np.any(np.isinf(phenotype)):
+            try:
+                np.nan_to_num(phenotype, copy=False, nan=np.nan, posinf=np.nan, neginf=np.nan)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
+                    val = np.nanmean(phenotype)
+                np.nan_to_num(phenotype, copy=False, nan=val, posinf=val, neginf=val)
+            except Exception as e:
+                np.nan_to_num(phenotype, copy=False, nan=0, posinf=0, neginf=0)
+            
         return phenotype
 
     def get_features_args(self):
