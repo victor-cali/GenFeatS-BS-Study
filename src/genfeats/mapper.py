@@ -1,19 +1,21 @@
-import ray
-from ray.util.multiprocessing import Pool
-import numpy as np
-from mne.epochs import BaseEpochs
-from typing import Union
-from typing import Callable
-from src.genfeats.dna.gene import Gene
-from src.genfeats.dna.chromesome import Chromesome
 from inspect import getfullargspec, getmembers, isfunction
+from mne.epochs import BaseEpochs
+from multiprocessing import cpu_count
+from ray.util.multiprocessing import Pool
+from typing import Union
 import importlib.util
+import numpy as np
+import ray
 import sys
+
+from src.genfeats.dna.chromesome import Chromesome
+from src.genfeats.dna.gene import Gene
+
 
 class Mapper:
     
     def __init__(self, features_file: str, chromesome_size: int, epochs: BaseEpochs) -> None:
-        self.pool = Pool()
+        self.n_cores = cpu_count()
         self.epochs = epochs
         self.sfreq = epochs.info['sfreq']
         self.features_handler = FeaturesHandler.remote(features_file)
@@ -32,15 +34,17 @@ class Mapper:
 
     def __gene_to_phenotype(self, gene: Gene, return_dict: bool) -> np.ndarray:
         gene_dto = self.__prepare_mapping(gene)
-        reference = self.pool.starmap(
-            self.features_handler.map.remote,
-            [(gene_dto['data'], gene_dto['feature'], gene_dto['feature_parameters'])]
-        )
-        if return_dict:
-            phenotype = dict(gene = ray.get(reference[0]))
-        else:
-            phenotype = ray.get(reference[0])
-        return phenotype
+        
+        with Pool(self.n_cores-1) as pool:
+            reference = pool.starmap(
+                self.features_handler.map.remote,
+                [(gene_dto['data'], gene_dto['feature'], gene_dto['feature_parameters'])]
+            )
+            if return_dict:
+                phenotype = dict(gene = ray.get(reference[0]))
+            else:
+                phenotype = ray.get(reference[0])
+            return phenotype
     
     def __chromesome_to_phenotype(self, chromesome: Chromesome, return_dict: bool) -> np.ndarray:
         args_list = []
@@ -49,16 +53,18 @@ class Mapper:
         for i in range(n_genes):
             gene_dto = self.__prepare_mapping(chromesome[i])
             args_list.append((gene_dto['data'], gene_dto['feature'], gene_dto['feature_parameters']))
-        references = self.pool.starmap(
-            self.features_handler.map.remote,
-            args_list
-        )
-        for i in range(n_genes):
-            if return_dict:
-                phenotype[chromesome[i]] = ray.get(references[i])
-            else:
-                phenotype[:, i] = ray.get(references[i])
-        return phenotype
+        
+        with Pool(self.n_cores-1) as pool:
+            references = pool.starmap(
+                self.features_handler.map.remote,
+                args_list
+            )
+            for i in range(n_genes):
+                if return_dict:
+                    phenotype[chromesome[i]] = ray.get(references[i])
+                else:
+                    phenotype[:, i] = ray.get(references[i])
+            return phenotype
     
     def __population_to_phenotype(self, population: Union[list, tuple]) -> np.ndarray:
         args_list = []
@@ -66,13 +72,14 @@ class Mapper:
         for i in range(n_genes):
             gene_dto = self.__prepare_mapping(population[i])
             args_list.append((gene_dto['data'], gene_dto['feature'], gene_dto['feature_parameters']))
-        references = self.pool.starmap(
-            self.features_handler.map.remote,
-            args_list
-        )
-        for i in range(n_genes):
-            phenotype = {population[i]: ray.get(references[i])}
-            yield phenotype
+        with Pool(self.n_cores-1) as pool:
+            references = pool.starmap(
+                self.features_handler.map.remote,
+                args_list
+            )
+            for i in range(n_genes):
+                phenotype = {population[i]: ray.get(references[i])}
+                yield phenotype
     
     def __prepare_mapping(self, gene: Gene) -> dict:
         gene = gene.to_dict()

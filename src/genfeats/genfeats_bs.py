@@ -1,17 +1,20 @@
-import os
-import json
-import numpy as np
+from  datetime import datetime as datetime
+from itertools import combinations, chain
 from math import ceil
 from math import sqrt
 from mne.epochs import BaseEpochs
 from numpy.random import default_rng
+from ray.util.joblib import register_ray
 from scipy.stats import pointbiserialr
-from itertools import combinations, chain
-from  datetime import datetime as datetime
 from sklearn.model_selection import StratifiedKFold
+import joblib
+import json
+import numpy as np
+import os
 
-from src.genfeats.dna.gene import Gene
+
 from src.genfeats.dna.chromesome import Chromesome
+from src.genfeats.dna.gene import Gene
 from src.genfeats.genotype_builder import GenotypeBuilder
 from src.genfeats.mapper import Mapper
 
@@ -28,7 +31,7 @@ class GenFeatSBS:
         self.progress_counter = 0
         self.mutate_edit_counter = 0
         self.mutation_rates = [0.1,0.2,0.7]
-        self.extintion_fate = self.rng.choice(np.arange(30,100,10))
+        self.extintion_fate = self.rng.choice(np.arange(30,60,10))
     
         self.epochs = epochs.copy()
         self.filterbank = epochs.copy()
@@ -39,7 +42,7 @@ class GenFeatSBS:
         self.chromesome_size = 3 if 'chromesome_size' not in kwargs.keys() else kwargs['chromesome_size']
         self.population_size = 40 if 'population_size' not in kwargs.keys() else kwargs['population_size']
         self.extintions_limit = 10 if 'extintions_limit' not in kwargs.keys() else kwargs['population_size']
-        self.generations_limit = 100 if 'generations_limit' not in kwargs.keys() else kwargs['generations_limit']
+        self.generations_limit = 300 if 'generations_limit' not in kwargs.keys() else kwargs['generations_limit']
         self.results_path = './genfeatsBS_results/' if 'results_path' not in kwargs.keys() else kwargs['results_path']
         self.execution_metadata = dict() if 'execution_metadata' not in kwargs.keys() else kwargs['execution_metadata']
         
@@ -55,6 +58,8 @@ class GenFeatSBS:
         
         self.fitness_function = fitness_function
         
+        register_ray()
+        
         self.num_of_parents = int(self.population_size * self.survival_rate)
         self.tournament_size = ceil(self.num_of_parents/2)
         self.offspring_size = int(self.population_size - self.num_of_parents * 2)
@@ -64,13 +69,13 @@ class GenFeatSBS:
         self.results = dict()
         
         self.results['info'] = {
-            'survival_rate': self.survival_rate,
             'chromesome_size': self.chromesome_size,
-            'population_size': self.population_size,
             'extintions_limit': self.extintions_limit,
             'generations_limit': self.generations_limit,
+            'metadata': self.execution_metadata,
+            'population_size': self.population_size,
             'StratifiedKFold_n_splits': self.folds,
-            'metadata': self.execution_metadata
+            'survival_rate': self.survival_rate
         }
         
         self.population = self.genotype_builder.make_population(self.population_size)
@@ -84,9 +89,9 @@ class GenFeatSBS:
             
             self.results[str(self.generation)] = {
                 'accuracy': None,
-                'solution': None,
+                'avg_feature_feature_corr': list(),
                 'avg_offspring_merit': None,
-                'avg_feature_feature_corr': list()
+                'solution': None
             }
             
             self.map_population()
@@ -149,8 +154,9 @@ class GenFeatSBS:
                     y_train, y_test = y[train_index], y[test_index]
                     #Train the model using the training sets
                     try:
-                        self.fitness_function.fit(X_train, y_train)
-                        accuracy = self.fitness_function.score(X_test, y_test)
+                        with joblib.parallel_backend('ray'):
+                            self.fitness_function.fit(X_train, y_train)
+                            accuracy = self.fitness_function.score(X_test, y_test)
                     except:
                         accuracy = 0.5
                     fitness += accuracy
@@ -290,7 +296,7 @@ class GenFeatSBS:
         
         if 'subject' in self.execution_metadata:
             subject = self.execution_metadata['subject']
-            results_file_name = f'results-{subject}-{timestamp}.json'
+            results_file_name = self.results_path + f'results-{subject}-{timestamp}.json'
         else:
             results_file_name = self.results_path + f'results-{timestamp}.json'
   
