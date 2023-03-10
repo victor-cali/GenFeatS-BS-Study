@@ -89,5 +89,4 @@ target/
 .mypy_cache/
 notebooks/Untitled-1.ipynb
 resources/
-src/sighandling/
 notebooks/chromesome_size.ipynb
