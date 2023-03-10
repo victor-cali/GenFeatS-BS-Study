@@ -1,0 +1,107 @@
+{
+    "features": 
+    {
+        "rms": {},
+        "mean": {},
+        "variance": {},
+        "skewness": {},
+        "kurtosis": {},
+        "std": {},
+        "quantile": 
+        {
+            "q": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        },
+        "ptp_amp": {},
+        "hurst_exp": {},
+        "hjorth_mobility": {},
+        "hjorth_complexity": {},
+        "higuchi_fd": 
+        {
+            "kmax": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+        },
+        "katz_fd": {},
+        "line_length": {},
+        "app_entropy": 
+        {
+            "emb": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            "metric": ["euclidean", "l2", "minkowski", "p", "manhattan", "cityblock", "l1", "chebyshev", "infinity"]
+        },
+        "samp_entropy": 
+        {
+            "emb": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            "metric": ["euclidean", "l2", "minkowski", "p", "manhattan", "cityblock", "l1", "chebyshev", "infinity"]
+        },
+        "decorr_time": {},
+        "pow_spect": 
+        {
+            "psd_method": ["welch", "multitaper", "fft"]
+        },
+        "pow_spect_log": 
+        {
+            "psd_method": ["welch", "multitaper", "fft"]
+        },
+        "pow_spect_ratios": 
+        {
+            "psd_method": ["welch", "multitaper", "fft"],
+            "constrains": {
+                "channels": 1,
+                "frequency_bands": 2
+            }
+        },
+        "pow_spect_log_ratios": 
+        {
+            "psd_method": ["welch", "multitaper", "fft"],
+            "constrains": {
+                "channels": 1,
+                "frequency_bands": 2
+            }
+        },
+        "hjorth_mobility_spect": 
+        {
+            "psd_method": ["welch", "multitaper", "fft"]
+        },
+        "hjorth_complexity_spect": 
+        {
+            "psd_method": ["welch", "multitaper", "fft"]
+        },
+        "zero_crossings": {},
+        "spect_entropy": 
+        {
+            "psd_method": ["welch", "multitaper", "fft"]
+        },
+        "svd_entropy": 
+        {
+            "tau": [1, 2, 3, 4, 5],
+            "emb": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        },
+        "svd_fisher_info": 
+        {
+            "tau": [1, 2, 3, 4, 5],
+            "emb": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        },
+        "energy_freq_bands": 
+        {
+            "deriv_filt": [true, false]
+        },
+        "spect_edge_freq": 
+        {
+            "psd_method": ["welch", "multitaper", "fft"],
+            "ref_freq": [2, 3, 4, 5],
+            "edge": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        }
+    },
+    "frequency_bands": 
+    [
+        [0.5,4],
+        [4,7.5],
+        [7.5,13],
+        [7.5,17.5],
+        [7.5,22],
+        [7.5,30],
+        [13,17.5],
+        [13,30],
+        [17.5,24],
+        [17.5,30]
+    ],
+    "channels": ["C3", "Cz", "C4"]
+}
