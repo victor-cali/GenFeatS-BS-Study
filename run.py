@@ -6,9 +6,9 @@ from sklearn import svm
 from src.genfeats.genfeats_bs import GenFeatSBS
 from src.sighandling.sighandling import get_dataset_bbcic4_2b
 
-DATASET_FOLDER_PATH = os.getenv('DATASET_FOLDER_PATH') #'D:/Dev/GenFeatS-BS/data/external/segmented' #os.getenv('DATASET_FOLDER_PATH')
-RESOURCES_FOLDER_PATH = os.getenv('RESOURCES_FOLDER_PATH') #'D:/Dev/GenFeatS-BS/resources' #os.getenv('RESOURCES_FOLDER_PATH')
-RESULTS_FOLDER_PATH = os.getenv('RESULTS_FOLDER_PATH') #'D:/Dev/GenFeatS-BS/data/processed' #os.getenv('RESULTS_FOLDER_PATH')
+DATASET_FOLDER_PATH = 'D:/Dev/GenFeatS-BS/data/external/segmented' #os.getenv('DATASET_FOLDER_PATH')
+RESOURCES_FOLDER_PATH = 'D:/Dev/GenFeatS-BS/resources' #os.getenv('RESOURCES_FOLDER_PATH')
+RESULTS_FOLDER_PATH = 'D:/Dev/GenFeatS-BS/data/processed' #os.getenv('RESULTS_FOLDER_PATH')
 SUBJECT = str(sys.argv[1])
 
 def get_base_name(file_name: str) -> str: 
