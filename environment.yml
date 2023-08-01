@@ -1,16 +1,13 @@
-name: GenFeatS-BS-Study-env
+name: base
 channels:
   - conda-forge
-  - defaults
+  - anaconda
 dependencies:
-  - mne
-  - mne-features
-  - ca-certificates
-  - certifi
-  - openssl
-  - cookiecutter
-  - sphinx
-  - coverage
-  - flake8
-  - python-dotenv
-prefix: .\GenFeatS-BS-Study-env
+  - python=3.10.6
+  - mne=1.1.1
+  - mne-features=0.2.1
+  - ray-default
+  - ray-core
+  - ray-all
+  - ray-dashboard
+  - redis=3.5.3

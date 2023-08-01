@@ -1,22 +1,22 @@
-from  datetime import datetime as datetime
-from itertools import combinations, chain
-from math import ceil
-from math import sqrt
+import json
+import os
+from datetime import datetime as datetime
+from itertools import chain, combinations
+from math import ceil, sqrt
+
+import joblib
+import numpy as np
 from mne.epochs import BaseEpochs
 from numpy.random import default_rng
 from ray.util.joblib import register_ray
 from scipy.stats import pointbiserialr
 from sklearn.model_selection import StratifiedKFold
-import joblib
-import json
-import numpy as np
-import os
-
 
 from src.genfeats.dna.chromesome import Chromesome
 from src.genfeats.dna.gene import Gene
 from src.genfeats.genotype_builder import GenotypeBuilder
 from src.genfeats.mapper import Mapper
+
 
 class GenFeatSBS:
     
@@ -41,17 +41,18 @@ class GenFeatSBS:
         self.survival_rate = 0.1 if 'survival_rate' not in kwargs.keys() else kwargs['survival_rate']
         self.chromesome_size = 3 if 'chromesome_size' not in kwargs.keys() else kwargs['chromesome_size']
         self.population_size = 40 if 'population_size' not in kwargs.keys() else kwargs['population_size']
-        self.extintions_limit = 10 if 'extintions_limit' not in kwargs.keys() else kwargs['population_size']
+        self.extintions_limit = 10 if 'extintions_limit' not in kwargs.keys() else kwargs['extintions_limit']
         self.generations_limit = 300 if 'generations_limit' not in kwargs.keys() else kwargs['generations_limit']
         self.results_path = './genfeatsBS_results/' if 'results_path' not in kwargs.keys() else kwargs['results_path']
         self.execution_metadata = dict() if 'execution_metadata' not in kwargs.keys() else kwargs['execution_metadata']
         
-        nucleobases = resources_folder + 'nucleobases.json'
+        nucleobases = f'{resources_folder}/nucleobases.json'
         self.genotype_builder = GenotypeBuilder(nucleobases=nucleobases, chromesome_size=self.chromesome_size)
         
         self.__set_filterbank()
         
-        features_file = resources_folder + 'nucleobases.py'
+        features_file = f'{resources_folder}/nucleobases.py'
+        
         self.map = Mapper(features_file=features_file, chromesome_size=self.chromesome_size, epochs=self.filterbank)
         
         self.skf = StratifiedKFold(n_splits=self.folds)
@@ -84,39 +85,46 @@ class GenFeatSBS:
         self.generation = 0
         self.best = self.population[0]
         self.score_records[self.best] = 0
+        
+        print("Starting Execution")
+        
         for i in range(self.generations_limit):
-            self.generation = i
             
-            self.results[str(self.generation)] = {
-                'accuracy': None,
-                'avg_feature_feature_corr': list(),
-                'avg_offspring_merit': None,
-                'solution': None
-            }
-            
-            self.map_population()
+            try:
+                self.generation = i
+                
+                self.results[str(self.generation)] = {
+                    'accuracy': None,
+                    'avg_feature_feature_corr': list(),
+                    'avg_offspring_merit': None,
+                    'solution': None
+                }
+                
+                self.map_population()
 
-            self.rate_population()
+                self.rate_population()
 
-            self.select_parents()
-        
-            self.cross_over()
+                self.select_parents()
+            
+                self.cross_over()
 
-            self.niche()
-        
-            self.mutate()
+                self.niche()
+            
+                self.mutate()
 
-            self.update_mutation_rates()
-            
-            #print(self.generation, ('%.4f' % ((self.score_records[self.best]+100)/200)), self.best)
-            self.results[str(self.generation)]['accuracy'] = float('%.4f' % ((self.score_records[self.best]+100)/200))
-            self.results[str(self.generation)]['solution'] = self.best.to_dict()
-            self.results[str(self.generation)]['avg_offspring_merit'] = np.mean(list(self.merit_record.values()))
-            self.results[str(self.generation)]['avg_feature_feature_corr'] = np.mean(self.results[str(self.generation)]['avg_feature_feature_corr'])
-            
-            self.set_next_generation()
-            
-            if self.score_records[self.best] > 80: break
+                self.update_mutation_rates()
+                
+                print(self.generation, ('%.4f' % ((self.score_records[self.best]+100)/200)), self.best)
+                self.results[str(self.generation)]['accuracy'] = float('%.4f' % ((self.score_records[self.best]+100)/200))
+                self.results[str(self.generation)]['solution'] = self.best.to_dict()
+                self.results[str(self.generation)]['avg_offspring_merit'] = np.mean(list(self.merit_record.values()))
+                self.results[str(self.generation)]['avg_feature_feature_corr'] = np.mean(self.results[str(self.generation)]['avg_feature_feature_corr'])
+                
+                self.set_next_generation()
+                
+                if self.score_records[self.best] > 90: break
+            except KeyboardInterrupt:
+                break
         
         self.save_results()
 
@@ -289,6 +297,8 @@ class GenFeatSBS:
     
     def save_results(self):
         
+        print("Saving results")
+        
         if not os.path.exists(self.results_path):
             os.makedirs(self.results_path)
         
@@ -302,3 +312,5 @@ class GenFeatSBS:
   
         with open(results_file_name, 'w') as write_file:
             json.dump(self.results, write_file, indent=4)
+            
+        print("Results saved")

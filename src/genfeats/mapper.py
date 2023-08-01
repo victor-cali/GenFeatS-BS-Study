@@ -1,12 +1,13 @@
-from inspect import getfullargspec, getmembers, isfunction
-from mne.epochs import BaseEpochs
-from multiprocessing import cpu_count
-from ray.util.multiprocessing import Pool
-from typing import Union
 import importlib.util
+import sys
+from inspect import getfullargspec, getmembers, isfunction
+from multiprocessing import cpu_count
+from typing import Union
+
 import numpy as np
 import ray
-import sys
+from mne.epochs import BaseEpochs
+from ray.util.multiprocessing import Pool
 
 from src.genfeats.dna.chromesome import Chromesome
 from src.genfeats.dna.gene import Gene

@@ -1,0 +1,13 @@
+version: '2.4'  # Use the appropriate version based on your Docker Compose version.
+
+services:
+
+  genfeatsbs:
+    image: genfeatsbs:1.0.0
+    shm_size: 4gb
+    container_name: genfeatsbs
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8265:8265"
+    command: python -u run.py S1_clean.mat
