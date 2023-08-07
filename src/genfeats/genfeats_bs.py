@@ -123,7 +123,7 @@ class GenFeatSBS:
                 self.set_next_generation()
                 
                 if self.score_records[self.best] > 90: break
-            except KeyboardInterrupt:
+            except:
                 break
         
         self.save_results()
