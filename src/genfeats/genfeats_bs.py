@@ -67,6 +67,14 @@ class GenFeatSBS:
         
     def __call__(self, *args: any, **kwds: any) -> any:
         
+        if 'init_individual' not in kwargs.keys():
+            self.population = self.genotype_builder.make_population(self.population_size)
+        else:
+            individual = Chromesome.from_dict(json.loads(kwargs['folds']))
+            self.population = self.genotype_builder.make_population(self.population_size - 1)
+            self.population.append(individual)
+         
+        
         self.results = dict()
         
         self.results['info'] = {
@@ -78,8 +86,6 @@ class GenFeatSBS:
             'StratifiedKFold_n_splits': self.folds,
             'survival_rate': self.survival_rate
         }
-        
-        self.population = self.genotype_builder.make_population(self.population_size)
 
         self.extintion = 0
         self.generation = 0

@@ -69,7 +69,7 @@ class GenotypeBuilder:
             genes.add(self.make_gene())
         return Chromesome(genes)
     
-    def make_population(self, size: int, return_stream: bool = False):
+    def make_population(self, size: int, return_stream: bool = False) -> list:
         if return_stream:
             population = [self.make_gene() for _ in range(size * self.chromesome_size)]
         else:
