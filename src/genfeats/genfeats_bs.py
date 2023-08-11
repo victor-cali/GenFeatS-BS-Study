@@ -70,7 +70,7 @@ class GenFeatSBS:
         if 'init_individual' not in kwargs.keys():
             self.population = self.genotype_builder.make_population(self.population_size)
         else:
-            individual = Chromesome.from_dict(json.loads(kwargs['folds']))
+            individual = Chromesome.from_dict(json.loads(kwargs['init_individual']))
             self.population = self.genotype_builder.make_population(self.population_size - 1)
             self.population.append(individual)
          
