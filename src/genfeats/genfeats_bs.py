@@ -65,7 +65,7 @@ class GenFeatSBS:
         self.tournament_size = ceil(self.num_of_parents/2)
         self.offspring_size = int(self.population_size - self.num_of_parents * 2)
         
-    def __call__(self, *args: any, **kwds: any) -> any:
+    def __call__(self, *args: any, **kwargs: any) -> any:
         
         if 'init_individual' not in kwargs.keys():
             self.population = self.genotype_builder.make_population(self.population_size)
