@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from datetime import datetime as datetime
 from itertools import chain, combinations
 from math import ceil, sqrt
@@ -93,6 +94,7 @@ class GenFeatSBS:
         self.score_records[self.best] = 0
         
         print("Starting Execution")
+        start_time = time.time()
         
         for i in range(self.generations_limit):
             
@@ -129,6 +131,10 @@ class GenFeatSBS:
                 self.set_next_generation()
                 
                 if self.score_records[self.best] > 90: break
+                
+                # Check if more than 21 hours have passed, and break the loop if so
+                if (time.time() - start_time) >= (21 * 3600): break
+        
             except:
                 break
         
